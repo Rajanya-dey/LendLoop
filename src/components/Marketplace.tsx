@@ -276,6 +276,61 @@ export default function Marketplace({
         </div>
       </div>
 
+      {/* Category-based Filtering Tabs */}
+      <div className="space-y-3.5 bg-slate-50/50 dark:bg-slate-900/30 p-5 rounded-3xl border border-slate-200/50 dark:border-slate-800/50">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500">
+            Filter Loan Offerings by Sector
+          </span>
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+            Available: {filteredLoans.length} of {loans.length} listings
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-2.5">
+          {[
+            { value: "All", label: "All Sectors", icon: <Globe className="w-4 h-4" /> },
+            { value: "Business", label: "Business", icon: <Store className="w-4 h-4" /> },
+            { value: "Home", label: "Home", icon: <Home className="w-4 h-4" /> },
+            { value: "Education", label: "Education", icon: <School className="w-4 h-4" /> },
+            { value: "Consolidation", label: "Debt Consolidation", icon: <FileText className="w-4 h-4" /> },
+            { value: "Medical", label: "Medical", icon: <Activity className="w-4 h-4" /> },
+            { value: "Other", label: "Other Sectors", icon: <SlidersHorizontal className="w-4 h-4" /> },
+          ].map((cat) => {
+            const isSelected = filterCategory === cat.value;
+            const count = loans.filter((loan) => {
+              const matchesSearch =
+                loan.title.toLowerCase().includes(search.toLowerCase()) ||
+                loan.borrowerName.toLowerCase().includes(search.toLowerCase());
+              return matchesSearch && (cat.value === "All" || loan.category === cat.value);
+            }).length;
+
+            return (
+              <button
+                key={cat.value}
+                onClick={() => setFilterCategory(cat.value)}
+                className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  isSelected
+                    ? "bg-slate-950 text-white dark:bg-emerald-600 dark:text-white shadow-md shadow-emerald-505/20"
+                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-750"
+                }`}
+              >
+                <span className={isSelected ? "text-white" : "text-emerald-600 dark:text-emerald-400"}>
+                  {cat.icon}
+                </span>
+                <span>{cat.label}</span>
+                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-black leading-none ${
+                  isSelected 
+                    ? "bg-white/20 text-white" 
+                    : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Grid of Marketplace Listings */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredLoans.length === 0 ? (

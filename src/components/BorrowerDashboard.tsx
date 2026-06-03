@@ -13,6 +13,15 @@ import {
   Calculator,
   AlertTriangle
 } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from "recharts";
 import { Loan, LoanStatus, Transaction, UserProfile } from "../types";
 import { scanActiveLoans, getLoanRepaymentStatus } from "../utils/loanUtils";
 
@@ -49,6 +58,37 @@ export default function BorrowerDashboard({
     : 1245.50;
     
   const creditScore = hasOverdue ? Math.max(300, 782 - 45 * overdueLoans.length) : 782; // Credit score drops temporarily if overdue repayments are detected!
+
+  // Generate 6-month repayment projection timeline
+  const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const today = new Date();
+  
+  const timelineData = Array.from({ length: 6 }).map((_, index) => {
+    const d = new Date(today.getFullYear(), today.getMonth() + index, 1);
+    const monthName = MONTH_NAMES[d.getMonth()];
+    const yearStr = d.getFullYear().toString().substring(2);
+    
+    let totalCommitment = 0;
+    
+    // Sum EMIs on active funded loans active during this offset month indices
+    loans.forEach((loan) => {
+      if (loan.status === LoanStatus.FUNDED) {
+        const repStatus = getLoanRepaymentStatus(loan, transactions);
+        const remainingInstalments = loan.tenureMonths - repStatus.totalPaidInstalments;
+        if (index < remainingInstalments) {
+          totalCommitment += repStatus.monthlyPayment;
+        }
+      }
+    });
+
+    return {
+      name: `${monthName} '${yearStr}`,
+      amount: parseFloat(totalCommitment.toFixed(2)),
+    };
+  });
+
+  const totalSixMonthRepayments = timelineData.reduce((sum, item) => sum + item.amount, 0);
+  const averageMonthlyPayment = totalSixMonthRepayments / 6;
 
   return (
     <div className="space-y-10 animate-fade-in">
@@ -144,6 +184,67 @@ export default function BorrowerDashboard({
               <Flame className="w-3.5 h-3.5 text-amber-500" /> Excellent standing
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Upcoming Repayment timeline bar chart */}
+      <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-3xl p-6 md:p-8 hover:shadow-lg dark:hover:shadow-slate-950/40 transition-all">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+          <div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <CalendarCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              Financial Commitments Timeline
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+              Track aggregate instalment projection commitments over the next 6 months to balance cash flow.
+            </p>
+          </div>
+          <div className="flex items-center gap-6 self-start md:self-auto bg-slate-50 dark:bg-slate-900/40 px-5 py-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <div>
+              <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-505 mb-0.5">
+                Total Committed (6Mo)
+              </p>
+              <p className="text-lg font-black text-slate-900 dark:text-white">
+                ${totalSixMonthRepayments.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+            <div className="h-8 w-px bg-slate-200 dark:bg-slate-800" />
+            <div>
+              <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 dark:text-slate-505 mb-0.5">
+                Avg. Monthly commitment
+              </p>
+              <p className="text-lg font-black text-emerald-600 dark:text-emerald-400">
+                ${averageMonthlyPayment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-[240px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" className="dark:stroke-slate-700" />
+              <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "#1e293b",
+                  border: "none",
+                  borderRadius: "12px",
+                  color: "#fff",
+                  fontSize: "12px",
+                }}
+                cursor={{ fill: "rgba(16, 185, 129, 0.05)" }}
+                formatter={(value) => [`$${value}`, "Amount Due"]}
+              />
+              <Bar 
+                dataKey="amount" 
+                fill="#10b981" 
+                radius={[6, 6, 0, 0]}
+                maxBarSize={45} 
+              />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

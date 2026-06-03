@@ -1,0 +1,6 @@
+{
+  "name": "LendLoop",
+  "description": "A secure and transparent peer-to-peer (P2P) lending platform connecting verified borrowers and lenders with real-time updates.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

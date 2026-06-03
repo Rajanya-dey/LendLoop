@@ -1,0 +1,61 @@
+{
+  "collections": {
+    "users": {
+      "documentId": "uid",
+      "fields": {
+        "uid": { "type": "string", "required": true },
+        "name": { "type": "string", "required": true },
+        "email": { "type": "string", "required": true },
+        "role": { "type": "string", "required": true },
+        "isVerified": { "type": "boolean", "required": true },
+        "avatarUrl": { "type": "string", "required": true },
+        "creditScore": { "type": "number", "required": true },
+        "availableCapital": { "type": "number", "required": true }
+      },
+      "rules": {
+        "read": "request.auth != null",
+        "write": "request.auth != null && request.auth.uid == documentId"
+      }
+    },
+    "loans": {
+      "documentId": "loanId",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "borrowerId": { "type": "string", "required": true },
+        "borrowerName": { "type": "string", "required": true },
+        "borrowerAvatar": { "type": "string", "required": true },
+        "title": { "type": "string", "required": true },
+        "category": { "type": "string", "required": true },
+        "description": { "type": "string", "required": true },
+        "amountRequired": { "type": "number", "required": true },
+        "amountFunded": { "type": "number", "required": true },
+        "interestRate": { "type": "number", "required": true },
+        "tenureMonths": { "type": "number", "required": true },
+        "status": { "type": "string", "required": true },
+        "rating": { "type": "string", "required": true },
+        "endsAt": { "type": "string", "required": true },
+        "createdAt": { "type": "string", "required": true }
+      },
+      "rules": {
+        "read": "request.auth != null",
+        "write": "request.auth != null"
+      }
+    },
+    "transactions": {
+      "documentId": "transactionId",
+      "fields": {
+        "id": { "type": "string", "required": true },
+        "userId": { "type": "string", "required": true },
+        "loanId": { "type": "string", "required": true },
+        "loanTitle": { "type": "string", "required": true },
+        "amount": { "type": "number", "required": true },
+        "type": { "type": "string", "required": true },
+        "date": { "type": "string", "required": true }
+      },
+      "rules": {
+        "read": "request.auth != null && (request.auth.uid == resource.data.userId || resource.data.userId == 'demo_user')",
+        "write": "request.auth != null"
+      }
+    }
+  }
+}
